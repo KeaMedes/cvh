@@ -61,9 +61,48 @@ class CiFar10(object):
         plt.imshow(img_color.reshape(32, 32, 3))
         plt.show()
 
+    def get_data(self, name=None):
+        if name in self.data_batchs or name in self.test_batchs:
+            return self.raw_data[name]['data']
+        else:
+            all = []
+            for name in self.data_batchs:
+                all.append(self.raw_data[name]['data'])
+            return np.concatenate(all)
+
+    def get_label(self, name=None):
+        if name in self.data_batchs or name in self.test_batchs:
+            return np.array(self.raw_data[name]['labels'])
+        else:
+            all = []
+            for name in self.data_batchs:
+                all.append(self.raw_data[name]['labels'])
+            return np.concatenate(all)
+
+    def get_train_data(self):
+        return self.get_data()
+
+    def get_train_label(self):
+        return self.get_label()
+
+    def get_test_data(self):
+        return self.get_data(self.test_batchs[0])
+
+    def get_test_label(self):
+        return self.get_label(self.test_batchs[0])
+
 
 if __name__ == '__main__':
     cifar10 = CiFar10()
     cifar10.load_data()
-    img = cifar10.get_test_img(101)
-    cifar10.show_test_img(img)
+    # img = cifar10.get_test_img(101)
+    # cifar10.show_test_img(img)
+    # data = cifar10.get_data()
+    # transformer = random_projection.SparseRandomProjection(eps=0.9)
+    # new_data = transformer.fit_transform(data)
+    # print data.shape
+    # print new_data.shape
+    test_data = cifar10.get_test_data()
+    test_label = cifar10.get_test_label()
+    print test_data.shape
+    print test_label.shape
