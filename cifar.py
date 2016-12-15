@@ -5,9 +5,16 @@ import numpy as np
 
 
 def rgb_to_gray(img):
-    # img = img_r.astype(np.float32) * 0.2989 + img_b.astype(np.float32) * 0.1140 + img_g.astype(np.float32) * 0.5870
-    # img = img_r * 0.2989 + img_b * 0.1140 + img_g.astype * 0.5870
-    return np.dot(img[...,:3], [0.299, 0.587, 0.114])
+    return np.dot([0.299, 0.587, 0.114], img.reshape(3, 1024))
+
+def to_read_img_slow(img):
+    new_img = []
+    img = img.reshape(3, 1024)
+    for i in range(0, 1024):
+        new_img.append(img[0][i])
+        new_img.append(img[1][i])
+        new_img.append(img[2][i])
+    return np.array(new_img)
 
 
 class CiFar10(object):
@@ -35,25 +42,28 @@ class CiFar10(object):
             for target in self.data_batchs + self.test_batchs:
                 self._load_batch(target)
 
-    def get_test_img(self):
-        return self.raw_data[self.data_batchs[0]]['data'][0]
+    def get_test_img(self, index=0):
+        return self.raw_data[self.data_batchs[0]]['data'][index]
 
     def show_test_img(self, img):
         img = img.reshape(3, 32, 32)
-        plt.subplot(2, 2, 1)
+        plt.subplot(2, 3, 1)
         plt.imshow(img[0], cmap='gray')
-        plt.subplot(2, 2, 2)
+        plt.subplot(2, 3, 2)
         plt.imshow(img[1], cmap='gray')
-        plt.subplot(2, 2, 3)
+        plt.subplot(2, 3, 3)
         plt.imshow(img[2], cmap='gray')
-        plt.subplot(2, 2, 4)
-        img_gray = rgb_to_gray(img.reshape(1024 * 3))
+        plt.subplot(2, 3, 4)
+        img_gray = rgb_to_gray(img).reshape(32, 32)
         plt.imshow(img_gray, cmap='gray')
+        plt.subplot(2, 3, 5)
+        img_color = to_read_img_slow(img)
+        plt.imshow(img_color.reshape(32, 32, 3))
         plt.show()
 
 
 if __name__ == '__main__':
     cifar10 = CiFar10()
     cifar10.load_data()
-    img = cifar10.get_test_img()
+    img = cifar10.get_test_img(101)
     cifar10.show_test_img(img)
