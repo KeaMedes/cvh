@@ -5,9 +5,20 @@ import numpy as np
 
 
 def rgb_to_gray(img):
+    """
+    Transform the image to gray scale.
+    :param img:
+    :return:
+    """
     return np.dot([0.299, 0.587, 0.114], img.reshape(3, 1024))
 
-def to_read_img_slow(img):
+
+def to_standard_img_slow(img):
+    """
+    Reshape the image from 3x1024 to 32x32x3.
+    :param img:
+    :return:
+    """
     new_img = []
     img = img.reshape(3, 1024)
     for i in range(0, 1024):
@@ -57,7 +68,7 @@ class CiFar10(object):
         img_gray = rgb_to_gray(img).reshape(32, 32)
         plt.imshow(img_gray, cmap='gray')
         plt.subplot(2, 3, 5)
-        img_color = to_read_img_slow(img)
+        img_color = to_standard_img_slow(img)
         plt.imshow(img_color.reshape(32, 32, 3))
         plt.show()
 
@@ -95,14 +106,5 @@ class CiFar10(object):
 if __name__ == '__main__':
     cifar10 = CiFar10()
     cifar10.load_data()
-    # img = cifar10.get_test_img(101)
-    # cifar10.show_test_img(img)
-    # data = cifar10.get_data()
-    # transformer = random_projection.SparseRandomProjection(eps=0.9)
-    # new_data = transformer.fit_transform(data)
-    # print data.shape
-    # print new_data.shape
-    test_data = cifar10.get_test_data()
-    test_label = cifar10.get_test_label()
-    print test_data.shape
-    print test_label.shape
+    img = cifar10.get_test_img(1011)
+    cifar10.show_test_img(img)
