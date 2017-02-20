@@ -6,6 +6,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 from itertools import product
+from util import run_with_time, to_gray
 
 
 def knn_accuracy(train_data, train_label, test_data, test_label, k):
@@ -17,10 +18,6 @@ def knn_accuracy(train_data, train_label, test_data, test_label, k):
 
     accuracy = accuracy_score(y_true=test_label, y_pred=result)
     return accuracy
-
-
-from cifar import rgb_to_gray
-from util import run_with_time
 
 
 def dimension_reduction(train_data, test_data, method, N):
@@ -44,16 +41,6 @@ def dimension_reduction(train_data, test_data, method, N):
 
         new_data = run_with_time('dimension reduction with svd', dimension_reduction_pca)
     return np.split(new_data, [train_size, ])
-
-
-def to_gray(train_data_color, test_data_color):
-    def to_gray_func():
-        train_data = np.array([rgb_to_gray(x) for x in train_data_color])
-        test_data = np.array([rgb_to_gray(x) for x in test_data_color])
-        return train_data, test_data
-
-    train_data, test_data = run_with_time('transform the image to gray scale', to_gray_func)
-    return train_data, test_data
 
 
 def main(image_color, dim_reduction_method, normalization_time, reduced_dim, KNN_K):
