@@ -11,18 +11,9 @@ from itertools import product
 def knn_accuracy(train_data, train_label, test_data, test_label, k):
     """Use knn to classify and return the accuracy"""
 
-    def knn_train():
-        knn = KNeighborsClassifier(n_neighbors=k, n_jobs=-1)
-        knn.fit(train_data, train_label)
-        return knn
-
-    knn = run_with_time('knn training', knn_train)
-
-    def knn_predict():
-        result = knn.predict(test_data)
-        return result
-
-    result = run_with_time('knn predict', knn_predict)
+    knn = KNeighborsClassifier(n_neighbors=k, n_jobs=-1)
+    knn.fit(train_data, train_label)
+    result = knn.predict(test_data)
 
     accuracy = accuracy_score(y_true=test_label, y_pred=result)
     return accuracy
@@ -78,33 +69,37 @@ def main(image_color, dim_reduction_method, normalization_time, reduced_dim, KNN
         train_data, test_data = to_gray(train_data, test_data)
 
     # data normalization
-    scaler = StandardScaler().fit(train_data)
-    train_data = scaler.fit_transform(train_data)
-    test_data = scaler.fit_transform(test_data)
+    if normalization_time == 'before':
+        scaler = StandardScaler().fit(train_data)
+        train_data = scaler.transform(train_data)
+        test_data = scaler.transform(test_data)
 
     # dimension reduction
     if dim_reduction_method == 'rp':
-        transformer = SparseRandomProjection(n_components=reduced_dim)
+        transformer = SparseRandomProjection(n_components=reduced_dim).fit(train_data)
     else:
-        transformer = PCA(n_components=reduced_dim)
-    train_data = transformer.fit_transform(train_data)
-    test_data = transformer.fit_transform(test_data)
-    print train_data.shape, test_data.shape
+        transformer = PCA(n_components=reduced_dim).fit(train_data)
+    train_data = transformer.transform(train_data)
+    test_data = transformer.transform(test_data)
+
+    if normalization_time == 'after':
+        scaler = StandardScaler().fit(train_data)
+        train_data = scaler.transform(train_data)
+        test_data = scaler.transform(test_data)
 
     accuracy = knn_accuracy(train_data, train_label, test_data, test_label, KNN_K)
     return accuracy
 
 
 if __name__ == '__main__':
-    # color_list = ['color', 'gray']
-    # dim_reduction_method_list = ['rp', 'svd']
-    # normalization_time_list = ['before', 'after']
-    # reduced_dim_list = [200, 300, 500]
-    # KNN_k_list = [1, 5, 9]
-    # for color, dim_reduction_method, normalization_time, reduced_dim, KNN_k in \
-    #         product(color_list, dim_reduction_method_list, normalization_time_list, reduced_dim_list, KNN_k_list):
-    #     accuracy = main(color, dim_reduction_method, normalization_time, reduced_dim, KNN_k)
-    #     print('color: %s, method: %s, time: %s, N: %d, k: %d, accuracy: %f' % (color, dim_reduction_method,
-    #                                                                            normalization_time, reduced_dim, KNN_k,
-    #                                                                            accuracy))
-    print main('gray', 'svd', 'before', 200, 9)
+    color_list = ['color', 'gray']
+    dim_reduction_method_list = ['rp', 'svd']
+    normalization_time_list = ['before', 'after']
+    reduced_dim_list = [200, 300, 500]
+    KNN_k_list = [1, 5, 9]
+    for color, dim_reduction_method, normalization_time, reduced_dim, KNN_k in \
+            product(color_list, dim_reduction_method_list, normalization_time_list, reduced_dim_list, KNN_k_list):
+        accuracy = main(color, dim_reduction_method, normalization_time, reduced_dim, KNN_k)
+        print('color: %s, method: %s, time: %s, N: %d, k: %d, accuracy: %f' % (color, dim_reduction_method,
+                                                                               normalization_time, reduced_dim, KNN_k,
+                                                                               accuracy))
