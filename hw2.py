@@ -85,12 +85,12 @@ def main(classify_method, k):
 
     # random pick 200 images
     print("random pick 200 images")
-    X_kmeans = random_pick(X_train, 5000)
+    X_kmeans = random_pick(X_train, 1000)
     print("random pick 200 images done, X_kmeans shape: %s" % (str(X_kmeans.shape)))
 
     # cluster the sift-descriptors with k-means
     print("kmeans clustering")
-    X_base = kmeas(X_kmeans, 16)
+    X_base = kmeas(X_kmeans, 64)
     print("kmeans clustering done, X_base shape: %s" % str(X_base.shape))
 
     # sparse coding
