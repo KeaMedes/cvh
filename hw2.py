@@ -1,7 +1,7 @@
 import random
 
 from cifar import CiFar10
-from util import to_gray, knn_accuracy
+from util import to_gray, knn_accuracy, linear_classifier_accuracy
 from sklearn.cluster import KMeans
 from sklearn.decomposition import SparseCoder
 from sklearn.metrics import silhouette_score
@@ -74,7 +74,7 @@ def sp_average_pooling(X):
     return np.stack(new_X)
 
 
-def main(classify_method, k):
+def main(cf_method, KNN_k_list):
     cifar = CiFar10()
     cifar.load_data()
 
@@ -109,36 +109,26 @@ def main(classify_method, k):
     print("spare coding done, X_train shape: %s, X_test shape: %s" % (str(X_train.shape), str(X_test.shape)))
 
     # spatial pyramid average pooling
-    X_train = average_pooling(X_train)
-    X_test = average_pooling(X_test)
-    # X_train = sp_average_pooling(X_train)
-    # X_test = sp_average_pooling(X_test)
+    # X_train = average_pooling(X_train)
+    # X_test = average_pooling(X_test)
+    X_train = sp_average_pooling(X_train)
+    X_test = sp_average_pooling(X_test)
     print("sp average pooling done, X_train shape: %s, X_test shape: %s" % (str(X_train.shape), str(X_test.shape)))
 
     X_train = X_train.reshape(X_train.shape[0], -1)
     X_test = X_test.reshape(X_test.shape[0], -1)
-    # scaler = StandardScaler().fit(X_train)
-    # X_train = scaler.transform(X_train)
-    # X_test = scaler.transform(X_test)
 
     # get accuracy
-    accuracy = knn_accuracy(X_train, Y_train, X_test, Y_test, 5)
-    print accuracy
-
-
-def test_sift():
-    img = 'test.jpg'
-    img = cv2.imread(img)
-    img_gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    print img_gray.shape
-    dense = cv2.FeatureDetector_create("Dense")
-    sift = cv2.SIFT()
-    kp = dense.detect(img_gray)
-    kp, des = sift.compute(img_gray, kp)
-    print des.shape
-    print des
+    if cf_method == 'knn':
+        for KNN_k in KNN_k_list:
+            accuracy = knn_accuracy(X_train, Y_train, X_test, Y_test, KNN_k)
+            print ("with KNN, and K: %d, get accuracy: %f" % (KNN_k, accuracy))
+    else:
+        accuracy = linear_classifier_accuracy(X_train, Y_train, X_test, Y_test)
+        print("with linear classfier, get accuracy: %f" % accuracy)
 
 
 if __name__ == '__main__':
-    main('', '')
-    # test_sift()
+    Knn_K = [1, 5, 9]
+    main('knn', KNN_k_list=Knn_K)
+    main('linear', None)
