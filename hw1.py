@@ -2,22 +2,9 @@ import numpy as np
 from cifar import CiFar10
 from sklearn.random_projection import SparseRandomProjection
 from sklearn.decomposition import PCA
-from sklearn.metrics import accuracy_score
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 from itertools import product
-from util import run_with_time, to_gray
-
-
-def knn_accuracy(train_data, train_label, test_data, test_label, k):
-    """Use knn to classify and return the accuracy"""
-
-    knn = KNeighborsClassifier(n_neighbors=k, n_jobs=-1)
-    knn.fit(train_data, train_label)
-    result = knn.predict(test_data)
-
-    accuracy = accuracy_score(y_true=test_label, y_pred=result)
-    return accuracy
+from util import run_with_time, to_gray, knn_accuracy
 
 
 def dimension_reduction(train_data, test_data, method, N):
