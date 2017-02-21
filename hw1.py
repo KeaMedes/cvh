@@ -4,7 +4,7 @@ from sklearn.random_projection import SparseRandomProjection
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from itertools import product
-from util import run_with_time, to_gray, knn_accuracy
+from util import run_with_time, to_gray, knn_accuracy, linear_classifier_accuracy
 
 
 def dimension_reduction(train_data, test_data, method, N):
@@ -30,7 +30,7 @@ def dimension_reduction(train_data, test_data, method, N):
     return np.split(new_data, [train_size, ])
 
 
-def main(image_color, dim_reduction_method, normalization_time, reduced_dim, KNN_K):
+def main(color, dr_method, dr_N_list, clf_method, KNN_K_list, nor):
     cifar = CiFar10()
     cifar.load_data()
 
@@ -39,41 +39,44 @@ def main(image_color, dim_reduction_method, normalization_time, reduced_dim, KNN
     test_data = cifar.get_test_data()
     test_label = cifar.get_test_label()
 
-    if image_color == 'gray':
+    if color == 'gray':
         train_data, test_data = to_gray(train_data, test_data)
 
+    print("data loading done, color: %s" % color)
+
     # data normalization
-    if normalization_time == 'before':
+    if nor:
         scaler = StandardScaler().fit(train_data)
         train_data = scaler.transform(train_data)
         test_data = scaler.transform(test_data)
 
-    # dimension reduction
-    if dim_reduction_method == 'rp':
-        transformer = SparseRandomProjection(n_components=reduced_dim).fit(train_data)
-    else:
-        transformer = PCA(n_components=reduced_dim).fit(train_data)
-    train_data = transformer.transform(train_data)
-    test_data = transformer.transform(test_data)
+    print("data normalization done, do normalization: %d" % nor)
 
-    if normalization_time == 'after':
-        scaler = StandardScaler().fit(train_data)
-        train_data = scaler.transform(train_data)
-        test_data = scaler.transform(test_data)
+    for dr_N in dr_N_list:
+        # dimension reduction
+        if dr_method == 'rp':
+            transformer = SparseRandomProjection(n_components=dr_N).fit(train_data)
+        else:
+            transformer = PCA(n_components=dr_N).fit(train_data)
+        new_train_data = transformer.transform(train_data)
+        new_test_data = transformer.transform(test_data)
+        print("dimension reduction done, method: %s, N: %d" % (dr_method, dr_N))
 
-    accuracy = knn_accuracy(train_data, train_label, test_data, test_label, KNN_K)
-    return accuracy
+        # get the accuracy
+        if clf_method == 'knn':
+            for KNN_k in KNN_K_list:
+                accuracy = knn_accuracy(new_train_data, train_label, new_test_data, test_label, KNN_k)
+                print ("with KNN, and K: %d, get accuracy: %f" % (KNN_k, accuracy))
+        else:
+            accuracy = linear_classifier_accuracy(new_train_data, train_label, new_test_data, test_label)
+            print("with linear classfier, get accuracy: %f" % accuracy)
+    print("-----------------------------------------------------------")
 
 
 if __name__ == '__main__':
-    color_list = ['color', 'gray']
-    dim_reduction_method_list = ['rp', 'svd']
-    normalization_time_list = ['before', 'after']
     reduced_dim_list = [200, 300, 500]
     KNN_k_list = [1, 5, 9]
-    for color, dim_reduction_method, normalization_time, reduced_dim, KNN_k in \
-            product(color_list, dim_reduction_method_list, normalization_time_list, reduced_dim_list, KNN_k_list):
-        accuracy = main(color, dim_reduction_method, normalization_time, reduced_dim, KNN_k)
-        print('color: %s, method: %s, time: %s, N: %d, k: %d, accuracy: %f' % (color, dim_reduction_method,
-                                                                               normalization_time, reduced_dim, KNN_k,
-                                                                               accuracy))
+    main(color='gray', dr_method='rp', dr_N_list=reduced_dim_list, clf_method='linear', KNN_K_list=None, nor=True)
+    main(color='gray', dr_method='rp', dr_N_list=reduced_dim_list, clf_method='knn', KNN_K_list=KNN_k_list, nor=True)
+    main(color='gray', dr_method='svd', dr_N_list=reduced_dim_list, clf_method='knn', KNN_K_list=KNN_k_list, nor=True)
+    main(color='gray', dr_method='svd', dr_N_list=reduced_dim_list, clf_method='knn', KNN_K_list=KNN_k_list, nor=True)
