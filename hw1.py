@@ -76,7 +76,7 @@ def main(color, dr_method, dr_N_list, clf_method, KNN_K_list, nor):
 if __name__ == '__main__':
     reduced_dim_list = [200, 300, 500]
     KNN_k_list = [1, 5, 9]
-    main(color='gray', dr_method='rp', dr_N_list=reduced_dim_list, clf_method='linear', KNN_K_list=None, nor=True)
-    main(color='gray', dr_method='rp', dr_N_list=reduced_dim_list, clf_method='knn', KNN_K_list=KNN_k_list, nor=True)
-    main(color='gray', dr_method='svd', dr_N_list=reduced_dim_list, clf_method='knn', KNN_K_list=KNN_k_list, nor=True)
-    main(color='gray', dr_method='svd', dr_N_list=reduced_dim_list, clf_method='knn', KNN_K_list=KNN_k_list, nor=True)
+    main(color='color', dr_method='rp', dr_N_list=reduced_dim_list, clf_method='linear', KNN_K_list=None, nor=True)
+    main(color='color', dr_method='svd', dr_N_list=reduced_dim_list, clf_method='linear', KNN_K_list=None, nor=True)
+    main(color='color', dr_method='rp', dr_N_list=reduced_dim_list, clf_method='knn', KNN_K_list=KNN_k_list, nor=True)
+    main(color='color', dr_method='svd', dr_N_list=reduced_dim_list, clf_method='knn', KNN_K_list=KNN_k_list, nor=True)
