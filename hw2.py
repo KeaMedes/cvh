@@ -5,6 +5,7 @@ from util import to_gray, knn_accuracy
 from sklearn.cluster import KMeans
 from sklearn.decomposition import SparseCoder
 from sklearn.metrics import silhouette_score
+from sklearn.preprocessing import StandardScaler
 import numpy as np
 import cv2
 
@@ -18,8 +19,8 @@ def generate_dense_sift(X):
         kp = dense.detect(img)
         kp, des = sift.compute(img, kp)
         sift_set.append(des)
-    sift_set = np.concatenate(sift_set)
-    return sift_set.reshape(X.shape[0], -1, 128)
+    sift_set = np.stack(sift_set, axis=0)
+    return sift_set
 
 
 def random_pick(X, n):
@@ -42,6 +43,14 @@ def sparse_coding(X, X_base):
     new_X = X.reshape(-1, 128)
     coder = SparseCoder(dictionary=X_base).fit(new_X)
     return coder.transform(new_X).reshape(X.shape[0], X.shape[1], -1)
+
+
+def average_pooling(X):
+    new_X = []
+    for img in X:
+        new_img = np.mean(img, axis=0)
+        new_X.append(new_img)
+    return np.stack(new_X, axis=0)
 
 
 def sp_average_pooling(X):
@@ -100,9 +109,17 @@ def main(classify_method, k):
     print("spare coding done, X_train shape: %s, X_test shape: %s" % (str(X_train.shape), str(X_test.shape)))
 
     # spatial pyramid average pooling
-    X_train = sp_average_pooling(X_train)
-    X_test = sp_average_pooling(X_test)
+    X_train = average_pooling(X_train)
+    X_test = average_pooling(X_test)
+    # X_train = sp_average_pooling(X_train)
+    # X_test = sp_average_pooling(X_test)
     print("sp average pooling done, X_train shape: %s, X_test shape: %s" % (str(X_train.shape), str(X_test.shape)))
+
+    X_train = X_train.reshape(X_train.shape[0], -1)
+    X_test = X_test.reshape(X_test.shape[0], -1)
+    # scaler = StandardScaler().fit(X_train)
+    # X_train = scaler.transform(X_train)
+    # X_test = scaler.transform(X_test)
 
     # get accuracy
     accuracy = knn_accuracy(X_train, Y_train, X_test, Y_test, 5)
